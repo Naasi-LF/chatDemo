@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
   },
-  { timestamps: true } // 自动生成 createdAt 和 updatedAt 时间戳
+  { timestamps: true }
 );
 
 const User = mongoose.model("User", userSchema);
