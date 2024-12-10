@@ -1,9 +1,9 @@
-import { useEffect } from "react";
-import { useChatStore } from "../../store/useChatStore";
+import { Loader2, Menu, X, Users } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
-import { Loader2 } from "lucide-react";
+import { useChatStore } from "../../store/useChatStore";
+import { useEffect } from "react";
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const { users, getUsers, selectedUser, setSelectedUser, isUsersLoading } = useChatStore();
   const { onlineUsers } = useAuthStore();
 
@@ -11,30 +11,41 @@ const Sidebar = () => {
     getUsers();
   }, [getUsers]);
 
-  useEffect(() => {
-    console.log("Current users:", users);
-  }, [users]);
-
   return (
-    <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-base-200">
-        <h2 className="text-xl font-bold">Messages</h2>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto p-4">
-        {isUsersLoading ? (
-          <div className="flex justify-center">
-            <Loader2 className="w-6 h-6 animate-spin" />
+    <div className={`
+      fixed md:relative inset-y-0 left-0 z-40
+      w-80 bg-base-100 border-r border-base-200
+      transform transition-transform duration-300 ease-in-out
+      ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+    `}>
+      <div className="h-full flex flex-col">
+        <div className="p-4 border-b border-base-200 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Users className="w-6 h-6" />
+            <h2 className="text-xl font-bold">Friends</h2>
           </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {users.map((user) => {
-              console.log("Rendering user:", user.fullName, "lastMessage:", user.lastMessage);
-              
-              return (
+          <button 
+            onClick={onClose}
+            className="md:hidden p-2 hover:bg-base-200 rounded-lg"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-4">
+          {isUsersLoading ? (
+            <div className="flex justify-center">
+              <Loader2 className="w-6 h-6 animate-spin" />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {users.map((user) => (
                 <button
                   key={user._id}
-                  onClick={() => setSelectedUser(user)}
+                  onClick={() => {
+                    setSelectedUser(user);
+                    onClose(); // 在移动端选择用户后自动关闭侧边栏
+                  }}
                   className={`flex items-center p-2 rounded-lg hover:bg-base-200 transition-all ${
                     selectedUser?._id === user._id ? "bg-base-200" : ""
                   }`}
@@ -74,10 +85,10 @@ const Sidebar = () => {
                     </div>
                   )}
                 </button>
-              );
-            })}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

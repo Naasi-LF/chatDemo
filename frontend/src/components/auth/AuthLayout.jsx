@@ -7,9 +7,9 @@ const AuthLayout = ({ children, title }) => {
       {/* 左侧装饰区域 */}
       <div className="hidden md:flex flex-col items-center justify-center bg-primary text-primary-content p-8">
         <MessageCircle className="w-16 h-16 mb-6" />
-        <h1 className="text-4xl font-bold mb-4">ChatDemo</h1>
+        <h1 className="text-4xl font-bold mb-4">CIT Chat App</h1>
         <p className="text-lg text-center max-w-md opacity-90">
-          Connect with friends and share moments in real-time with our modern chat application.
+          22030531 XiCheng Yang <br /> teacher: Mr Li
         </p>
       </div>
 

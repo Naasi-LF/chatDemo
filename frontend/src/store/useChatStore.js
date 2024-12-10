@@ -14,27 +14,36 @@ export const useChatStore = create((set, get) => ({
     set({ isUsersLoading: true });
     try {
       const res = await axiosInstance.get("/messages/users");
-      set({ users: res.data });
+      const users = res.data;
+      
+      // 为每个用户获取最后一条消息
+      const usersWithLastMessage = await Promise.all(
+        users.map(async (user) => {
+          try {
+            const messagesRes = await axiosInstance.get(`/messages/${user._id}`);
+            const messages = messagesRes.data;
+            const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+            return { ...user, lastMessage };
+          } catch (error) {
+            console.error(`Error fetching messages for user ${user._id}:`, error);
+            return user;
+          }
+        })
+      );
+
+      // 根据最后一条消息的时间对用户列表进行排序
+      const sortedUsers = usersWithLastMessage.sort((a, b) => {
+        const timeA = a.lastMessage ? new Date(a.lastMessage.createdAt).getTime() : 0;
+        const timeB = b.lastMessage ? new Date(b.lastMessage.createdAt).getTime() : 0;
+        return timeB - timeA; // 最新消息的用户排在前面
+      });
+
+      set({ users: sortedUsers });
     } catch (error) {
       toast.error(error.response?.data?.message || "Error fetching users");
     } finally {
       set({ isUsersLoading: false });
     }
-  },
-
-  updateLastMessage: (message) => {
-    const { users } = get();
-    const updatedUsers = users.map(user => {
-      if (user._id === message.senderId || user._id === message.receiverId) {
-        const currentLastMessage = user.lastMessage;
-        // 只有当新消息的时间比当前最后一条消息新时才更新
-        if (!currentLastMessage || new Date(message.createdAt) > new Date(currentLastMessage.createdAt)) {
-          return { ...user, lastMessage: message };
-        }
-      }
-      return user;
-    });
-    set({ users: updatedUsers });
   },
 
   getMessages: async (userId) => {
@@ -100,7 +109,7 @@ export const useChatStore = create((set, get) => ({
     const prevUser = get().selectedUser;
     set({ selectedUser: user });
     
-    // 如果之前有选中的用户，先取消订阅
+    // 取消之前的消息订阅
     if (prevUser) {
       get().unsubscribeFromMessages();
     }
@@ -110,16 +119,30 @@ export const useChatStore = create((set, get) => ({
       try {
         const res = await axiosInstance.get(`/messages/${user._id}`);
         set({ messages: res.data });
-        // 如果有消息，更新最后一条消息
-        if (res.data.length > 0) {
-          const lastMessage = res.data[res.data.length - 1];
-          get().updateLastMessage(lastMessage);
-        }
       } catch (error) {
         toast.error(error.response?.data?.message || "Error fetching messages");
         set({ messages: [] });
       }
       get().subscribeToMessages();
     }
+  },
+
+  updateLastMessage: (message) => {
+    const { users } = get();
+    const updatedUsers = users.map(user => {
+      if (user._id === message.senderId || user._id === message.receiverId) {
+        return { ...user, lastMessage: message };
+      }
+      return user;
+    });
+    
+    // 根据最后一条消息的时间对用户列表进行排序
+    const sortedUsers = updatedUsers.sort((a, b) => {
+      const timeA = a.lastMessage ? new Date(a.lastMessage.createdAt).getTime() : 0;
+      const timeB = b.lastMessage ? new Date(b.lastMessage.createdAt).getTime() : 0;
+      return timeB - timeA; // 最新消息的用户排在前面
+    });
+    
+    set({ users: sortedUsers });
   },
 }));

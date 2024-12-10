@@ -10,7 +10,7 @@ const Navbar = () => {
       <div className="navbar-start">
         <Link to="/" className="btn btn-ghost text-xl">
           <MessageCircle className="w-6 h-6" />
-          <span className="ml-2">ChatDemo</span>
+          <span className="ml-2">Chat</span>
         </Link>
       </div>
 
