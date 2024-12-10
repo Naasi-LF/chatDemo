@@ -49,10 +49,11 @@ export const useAuthStore = create((set, get) => ({
       const res = await axiosInstance.post("/auth/login", data);
       set({ authUser: res.data });
       toast.success("Logged in successfully");
-
       get().connectSocket();
+      return true; // 登录成功
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response.data.message || "Login failed, please try again.");
+      return false; // 登录失败
     } finally {
       set({ isLoggingIn: false });
     }

@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import AuthLayout from "../components/auth/AuthLayout";
 import { Loader2 } from "lucide-react";
+import toast from 'react-hot-toast';
 
 export const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -23,8 +24,14 @@ export const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await login(formData);
-    navigate("/");
+    try {
+      const success = await login(formData);
+      if (success) {
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   };
 
   return (
